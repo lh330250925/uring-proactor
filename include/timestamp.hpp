@@ -2,6 +2,7 @@
 #include <string>
 #include <chrono>
 #include <ctime>
+#include <unordered_map>
 
 // Timestamp class to generate timestamps fmt: [YYYY-MM-DD HH:MM:SS]
-std::string getCurrentTimestamp();
+const std::unordered_map<std::string, std::string> get_current_timestamp();

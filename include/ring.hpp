@@ -2,7 +2,7 @@
 #include <liburing.h>
 #include "noncopyable.hpp"
 
-class Sqe:NonCopyable
+class Sqe : NonCopyable
 {
 private:
     io_uring_sqe *const sqe_;
@@ -27,12 +27,12 @@ public:
     void prep_send(int fd, const void *buf, unsigned nbytes, int flags);
     void prep_sendmsg(int fd, struct msghdr *msg, int flags);
     void prep_msg_ring(int fd, unsigned len, void *data, int flags);
-    void prep_msg_ring_fd(int fd, int source_fd,int target_fd,void* data,int flags);
+    void prep_msg_ring_fd(int fd, int source_fd, int target_fd, void *data, int flags);
     void prep_msg_ring_fd_alloc(int fd, unsigned len, void *data, int flags);
     void set_data(void *data);
 };
 
-class Cqe:NonCopyable
+class Cqe : NonCopyable
 {
 private:
     io_uring_cqe *const cqe_;
@@ -50,7 +50,7 @@ public:
     }
 };
 
-class Ring:NonCopyable
+class Ring : NonCopyable
 {
 private:
     io_uring ring;

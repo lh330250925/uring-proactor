@@ -144,13 +144,13 @@ Cqe Ring::peek_cqe()
 {
     io_uring_cqe *cqe = nullptr;
     const int ret = io_uring_peek_cqe(&ring, &cqe);
+    if (ret == -EAGAIN)
+    {
+        return {nullptr};
+    }
     if (ret < 0)
     {
         throw_uring_error(ret, "io_uring_peek_cqe failed");
-    }
-    if (cqe == nullptr)
-    {
-        throw std::runtime_error("io_uring_peek_cqe returned null");
     }
     return {cqe};
 }
@@ -172,7 +172,7 @@ int Ring::submit_and_wait(unsigned wait_nr)
     }
     return ret;
 }
-int Ring::register_files(int *fds, unsigned nr_fds)
+int Ring::register_files(const int *fds, unsigned nr_fds)
 {
     const int ret = io_uring_register_files(&ring, fds, nr_fds);
     if (ret < 0)
