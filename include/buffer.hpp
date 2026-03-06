@@ -22,9 +22,8 @@ public:
         char *data[N];
         unsigned int size[N];
         unsigned int count;
-        unsigned int offset;
     };
-    ReadBuf(BufRing &buf_ring) : buf_ring_(buf_ring)
+    ReadBuf(BufRing &buf_ring) : buf_ring_(&buf_ring)
     {
     }
     bool append(unsigned int block_idx)
@@ -47,6 +46,8 @@ public:
     }
     result *peek(unsigned int size);
     bool consume(unsigned int size);
+private:
+    result result_;
 };
 template <unsigned int N>
 class WriteBuf : NonCopyable

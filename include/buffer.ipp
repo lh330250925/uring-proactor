@@ -11,21 +11,22 @@ ReadBuf<N>::result *ReadBuf<N>::peek(unsigned int size)
     {
         return nullptr;
     }
-    unsigned int block_readable_bytes;
-    char* start_ptr;
-    for(auto i = head_block_; i < tail_block_ && size > 0; ++i)
+    unsigned int idx = 0;
+    for (auto i = head_block_; i < tail_block_ && size > 0; ++i)
     {
-        block_readable_bytes = buf_ring_->get_size(buf_queue_[i & block_mask_]) - ((i == head_block_) ? head_offset_ : 0);
-        start_ptr = buf_ring_->get_addr(buf_queue_[i & block_mask_]) + ((i == head_block_) ? head_offset_ : 0);
-        if(block_readable_bytes > size)
+        unsigned int offset = (i == head_block_) ? head_offset_ : 0;
+        unsigned int block_readable = buf_ring_->get_size(buf_queue_[i & block_mask_]) - offset;
+        char *start_ptr = buf_ring_->get_addr(buf_queue_[i & block_mask_]) + offset;
+        if (block_readable > size)
         {
-            block_readable_bytes = size;
+            block_readable = size;
         }
-        result_.data[result_.count] = start_ptr;
-        result_.size[result_.count] = block_readable_bytes;
-        size -= block_readable_bytes;
+        result_.data[idx] = start_ptr;
+        result_.size[idx] = block_readable;
+        size -= block_readable;
+        ++idx;
     }
-    result_.count = tail_block_ - head_block_;
+    result_.count = idx;
     return &result_;
 }
 
@@ -48,10 +49,7 @@ bool ReadBuf<N>::consume(unsigned int size)
         size -= avail;
         buf_ring_->release(buf_queue_[head_block_ & block_mask_]);
         head_offset_ = 0;
-        if (++head_block_ == tmp_buf_end_block_)
-        {
-            tmp_buf_size_ = 0;
-        }
+        ++head_block_;
     }
     return true;
 }
