@@ -10,10 +10,11 @@
 #include <semaphore>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <iostream>
 #include "timestamp.hpp"
 #include "noncopyable.hpp"
-#include "ring.hpp"
-#include "MPSCQueue.hpp"
+#include "io_ring.hpp"
+#include "MPSC_queue.hpp"
 
 class Logger : NonCopyable
 {
@@ -82,6 +83,6 @@ private:
     int fd_ = -1;
     size_t offset_ = 0;
     unsigned in_flight_ = 0;
-    Ring ring_;
+    IoRing ring_;
     std::atomic<LogLevel> log_level_{LogLevel::DEBUG};
 };

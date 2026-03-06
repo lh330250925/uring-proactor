@@ -88,6 +88,7 @@ void Logger::log(LogLevel level, const std::string &message)
     }
     const auto ts = get_current_timestamp();
     std::string line = std::format("{} {} {}\n", ts.at("[YmdHMS]"), level_str, message);
+    std::cout<< line;
     append(line.c_str(), line.size());
 }
 bool Logger::switch_log_file_date()

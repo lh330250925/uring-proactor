@@ -1,0 +1,3 @@
+/app/proactor-server/build/CMakeFiles/proactor_common.dir
+/app/proactor-server/build/CMakeFiles/edit_cache.dir
+/app/proactor-server/build/CMakeFiles/rebuild_cache.dir

@@ -1,4 +1,4 @@
-#include "ring.hpp"
+#include "io_ring.hpp"
 #include <cerrno>
 #include <stdexcept>
 #include <system_error>
@@ -27,6 +27,10 @@ void Sqe::prep_readv(int fd, const struct iovec *iov, unsigned nr_vecs, off_t of
 {
     io_uring_prep_readv(sqe_, fd, iov, nr_vecs, offset);
 }
+void Sqe::prep_readv_fixed(int fd, const struct iovec *iov, unsigned nr_vecs, off_t offset, int buf_index)
+{
+    io_uring_prep_readv2(sqe_, fd, iov, nr_vecs, offset, buf_index);
+}
 void Sqe::prep_write(int fd, const void *buf, unsigned nbytes, off_t offset)
 {
     io_uring_prep_write(sqe_, fd, buf, nbytes, offset);
@@ -34,6 +38,14 @@ void Sqe::prep_write(int fd, const void *buf, unsigned nbytes, off_t offset)
 void Sqe::prep_writev(int fd, const struct iovec *iov, unsigned nr_vecs, off_t offset)
 {
     io_uring_prep_writev(sqe_, fd, iov, nr_vecs, offset);
+}
+void Sqe::prep_write_fixed(int fd, const void *buf, unsigned nbytes, off_t offset, int buf_index)
+{
+    io_uring_prep_write_fixed(sqe_, fd, buf, nbytes, offset, buf_index);
+}
+void Sqe::prep_writev_fixed(int fd, const struct iovec *iov, unsigned nr_vecs, off_t offset, int buf_index)
+{
+    io_uring_prep_writev2(sqe_, fd, iov, nr_vecs, offset, buf_index);
 }
 void Sqe::prep_accept(int fd, struct sockaddr *addr, socklen_t *addrlen, int flags)
 {
@@ -105,7 +117,7 @@ int Cqe::get_flag() const
 {
     return cqe_->flags;
 }
-Ring::Ring(const unsigned &flags)
+IoRing::IoRing(const unsigned &flags)
 {
     const int ret = io_uring_queue_init(QUEUE_DEPTH, &ring, flags);
     if (ret < 0)
@@ -113,11 +125,11 @@ Ring::Ring(const unsigned &flags)
         throw_uring_error(ret, "io_uring_queue_init failed");
     }
 }
-Ring::~Ring()
+IoRing::~IoRing()
 {
     io_uring_queue_exit(&ring);
 }
-Sqe Ring::get_sqe()
+Sqe IoRing::get_sqe()
 {
     io_uring_sqe *sqe = io_uring_get_sqe(&ring);
     if (sqe == nullptr)
@@ -126,7 +138,7 @@ Sqe Ring::get_sqe()
     }
     return Sqe(sqe);
 }
-Cqe Ring::wait_cqe()
+Cqe IoRing::wait_cqe()
 {
     io_uring_cqe *cqe = nullptr;
     const int ret = io_uring_wait_cqe(&ring, &cqe);
@@ -140,7 +152,7 @@ Cqe Ring::wait_cqe()
     }
     return {cqe};
 }
-Cqe Ring::peek_cqe()
+Cqe IoRing::peek_cqe()
 {
     io_uring_cqe *cqe = nullptr;
     const int ret = io_uring_peek_cqe(&ring, &cqe);
@@ -154,7 +166,7 @@ Cqe Ring::peek_cqe()
     }
     return {cqe};
 }
-int Ring::submit()
+int IoRing::submit()
 {
     const int ret = io_uring_submit(&ring);
     if (ret < 0)
@@ -163,7 +175,7 @@ int Ring::submit()
     }
     return ret;
 }
-int Ring::submit_and_wait(unsigned wait_nr)
+int IoRing::submit_and_wait(unsigned wait_nr)
 {
     const int ret = io_uring_submit_and_wait(&ring, wait_nr);
     if (ret < 0)
@@ -172,7 +184,7 @@ int Ring::submit_and_wait(unsigned wait_nr)
     }
     return ret;
 }
-int Ring::register_files(const int *fds, unsigned nr_fds)
+int IoRing::register_files(const int *fds, unsigned nr_fds)
 {
     const int ret = io_uring_register_files(&ring, fds, nr_fds);
     if (ret < 0)
@@ -181,15 +193,15 @@ int Ring::register_files(const int *fds, unsigned nr_fds)
     }
     return ret;
 }
-void Ring::cqe_seen(const Cqe &cqe)
+void IoRing::cqe_seen(const Cqe &cqe)
 {
     io_uring_cqe_seen(&ring, cqe.cqe_);
 }
-void Ring::cqe_advance(unsigned nr)
+void IoRing::cqe_advance(unsigned nr)
 {
     io_uring_cq_advance(&ring, nr);
 }
-int Ring::get_fd() const
+int IoRing::get_fd() const
 {
     return ring.ring_fd;
 }

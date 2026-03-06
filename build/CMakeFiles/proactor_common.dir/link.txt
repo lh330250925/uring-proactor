@@ -1,0 +1,2 @@
+/usr/bin/aarch64-linux-gnu-ar qc libproactor_common.a CMakeFiles/proactor_common.dir/src/log.cpp.o CMakeFiles/proactor_common.dir/src/ring.cpp.o CMakeFiles/proactor_common.dir/src/timestamp.cpp.o
+/usr/bin/aarch64-linux-gnu-ranlib libproactor_common.a
