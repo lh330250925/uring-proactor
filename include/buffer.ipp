@@ -4,64 +4,32 @@
 #include "buffer.hpp"
 #endif
 
-template<unsigned int N>
-char *ReadBuf<N>::peek(unsigned int size)
+template <unsigned int N>
+ReadBuf<N>::result *ReadBuf<N>::peek(unsigned int size)
 {
     if (size > readable_bytes_)
     {
         return nullptr;
     }
-    unsigned int head_avail = buf_ring_->get_size(buf_queue_[head_block_ & block_mask_]) - head_offset_;
-    if (size <= head_avail)
+    unsigned int block_readable_bytes;
+    char* start_ptr;
+    for(auto i = head_block_; i < tail_block_ && size > 0; ++i)
     {
-        return buf_ring_->get_addr(buf_queue_[head_block_ & block_mask_]) + head_offset_;
-    }
-    int remaining = (int)size;
-    unsigned int covered = 0;
-    for (unsigned int i = head_block_; i < tmp_buf_end_block_; ++i)
-    {
-        unsigned int block_bytes = (i == head_block_)
-            ? buf_ring_->get_size(buf_queue_[i & block_mask_]) - head_offset_
-            : buf_ring_->get_size(buf_queue_[i & block_mask_]);
-        covered += block_bytes;
-        remaining -= (int)block_bytes;
-    }
-    if (remaining <= 0)
-    {
-        return tmp_buf_.data() + (tmp_buf_size_ - covered);
-    }
-    unsigned int new_size = 0;
-    {
-        unsigned int acc = 0;
-        for (unsigned int i = head_block_; acc < size; ++i)
+        block_readable_bytes = buf_ring_->get_size(buf_queue_[i & block_mask_]) - ((i == head_block_) ? head_offset_ : 0);
+        start_ptr = buf_ring_->get_addr(buf_queue_[i & block_mask_]) + ((i == head_block_) ? head_offset_ : 0);
+        if(block_readable_bytes > size)
         {
-            unsigned int block_bytes = (i == head_block_)
-                ? buf_ring_->get_size(buf_queue_[i & block_mask_]) - head_offset_
-                : buf_ring_->get_size(buf_queue_[i & block_mask_]);
-            acc += block_bytes;
-            new_size += block_bytes;
+            block_readable_bytes = size;
         }
+        result_.data[result_.count] = start_ptr;
+        result_.size[result_.count] = block_readable_bytes;
+        size -= block_readable_bytes;
     }
-    tmp_buf_.resize(new_size);
-    unsigned int idx = head_block_;
-    tmp_buf_size_ = 0;
-    while (tmp_buf_size_ < new_size)
-    {
-        unsigned int src_offset = (idx == head_block_) ? head_offset_ : 0;
-        unsigned int block_bytes = buf_ring_->get_size(buf_queue_[idx & block_mask_]) - src_offset;
-        std::copy(
-            buf_ring_->get_addr(buf_queue_[idx & block_mask_]) + src_offset,
-            buf_ring_->get_addr(buf_queue_[idx & block_mask_]) + src_offset + block_bytes,
-            tmp_buf_.data() + tmp_buf_size_
-        );
-        tmp_buf_size_ += block_bytes;
-        ++idx;
-    }
-    tmp_buf_end_block_ = idx;
-    return tmp_buf_.data();
+    result_.count = tail_block_ - head_block_;
+    return &result_;
 }
 
-template<unsigned int N>
+template <unsigned int N>
 bool ReadBuf<N>::consume(unsigned int size)
 {
     if (size > readable_bytes_)
@@ -88,7 +56,7 @@ bool ReadBuf<N>::consume(unsigned int size)
     return true;
 }
 
-template<unsigned int N>
+template <unsigned int N>
 bool WriteBuf<N>::append(const char *data, unsigned int size)
 {
     const int original_tail = buf_tail_;
@@ -141,7 +109,7 @@ bool WriteBuf<N>::append(const char *data, unsigned int size)
     return true;
 }
 
-template<unsigned int N>
+template <unsigned int N>
 bool WriteBuf<N>::prepend(const char *data, unsigned int size)
 {
     unsigned int block_to_write = (size + 4095) >> 12;
@@ -168,7 +136,7 @@ bool WriteBuf<N>::prepend(const char *data, unsigned int size)
     return true;
 }
 
-template<unsigned int N>
+template <unsigned int N>
 bool WriteBuf<N>::submit()
 {
     if (buf_head_ == buf_tail_)

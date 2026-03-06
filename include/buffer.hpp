@@ -4,8 +4,8 @@
 #include "log.hpp"
 #include "buf_ring.hpp"
 #include "buf_pool.hpp"
-template<unsigned int N>
-class ReadBuf: NonCopyable
+template <unsigned int N>
+class ReadBuf : NonCopyable
 {
     static_assert((N & (N - 1)) == 0, "N must be a power of 2");
     unsigned int buf_queue_[N];
@@ -15,14 +15,17 @@ class ReadBuf: NonCopyable
     unsigned int head_offset_ = 0;
     static constexpr unsigned int block_mask_ = N - 1;
     unsigned int readable_bytes_ = 0;
-    std::vector<char> tmp_buf_;
-    unsigned int tmp_buf_end_block_ = 0;
-    unsigned int tmp_buf_size_ = 0;
 
 public:
+    struct result
+    {
+        char *data[N];
+        unsigned int size[N];
+        unsigned int count;
+        unsigned int offset;
+    };
     ReadBuf(BufRing &buf_ring) : buf_ring_(buf_ring)
     {
-        tmp_buf_.reserve(4096);
     }
     bool append(unsigned int block_idx)
     {
@@ -39,13 +42,14 @@ public:
         return head_block_ == tail_block_;
     }
     unsigned int readable_bytes() const
-    {        return readable_bytes_;
+    {
+        return readable_bytes_;
     }
-    char *peek(unsigned int size);
+    result *peek(unsigned int size);
     bool consume(unsigned int size);
 };
-template<unsigned int N>
-class WriteBuf: NonCopyable 
+template <unsigned int N>
+class WriteBuf : NonCopyable
 {
     static_assert((N & (N - 1)) == 0, "N must be a power of 2");
     unsigned int buf_queue_[N];
@@ -56,10 +60,11 @@ class WriteBuf: NonCopyable
     int submit_tail_ = 0;
     BufPool *buf_pool_;
     static constexpr unsigned int mask_ = N - 1;
+
 public:
     WriteBuf(BufPool &buf_pool) : buf_pool_(&buf_pool) {}
-    bool append(const char* data, unsigned int size);    
-    bool prepend(const char* data, unsigned int size);
+    bool append(const char *data, unsigned int size);
+    bool prepend(const char *data, unsigned int size);
     bool submit();
 };
 
