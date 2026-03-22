@@ -70,6 +70,7 @@ public:
     {
         Channel::reset(fd);
         in_flight_ = 0;
+        in_pending_reads_ = false;
     }
     bool is_closing() const { return notify_token_.is_closed(); }
     bool is_closed() const { return fd_ == -1; }
@@ -81,6 +82,9 @@ private:
     TcpChannelPool &pool_;
     TcpServer &server_;
     int in_flight_ = 0;
+
+public:
+    bool in_pending_reads_ = false;
 };
 class UdpChannel : public Channel
 {
