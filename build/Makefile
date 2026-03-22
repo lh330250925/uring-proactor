@@ -117,89 +117,523 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named proactor_common
+# Target rules for targets named proactor_server_core
 
 # Build rule for target.
-proactor_common: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 proactor_common
-.PHONY : proactor_common
+proactor_server_core: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 proactor_server_core
+.PHONY : proactor_server_core
 
 # fast build rule for target.
-proactor_common/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/build
-.PHONY : proactor_common/fast
+proactor_server_core/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/build
+.PHONY : proactor_server_core/fast
 
-src/log.o: src/log.cpp.o
-.PHONY : src/log.o
+#=============================================================================
+# Target rules for targets named echo_server
 
-# target to build an object file
-src/log.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/log.cpp.o
-.PHONY : src/log.cpp.o
+# Build rule for target.
+echo_server: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 echo_server
+.PHONY : echo_server
 
-src/log.i: src/log.cpp.i
-.PHONY : src/log.i
+# fast build rule for target.
+echo_server/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo_server.dir/build.make CMakeFiles/echo_server.dir/build
+.PHONY : echo_server/fast
 
-# target to preprocess a source file
-src/log.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/log.cpp.i
-.PHONY : src/log.cpp.i
+#=============================================================================
+# Target rules for targets named bench
 
-src/log.s: src/log.cpp.s
-.PHONY : src/log.s
+# Build rule for target.
+bench: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bench
+.PHONY : bench
 
-# target to generate assembly for a file
-src/log.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/log.cpp.s
-.PHONY : src/log.cpp.s
+# fast build rule for target.
+bench/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/bench.dir/build.make CMakeFiles/bench.dir/build
+.PHONY : bench/fast
 
-src/ring.o: src/ring.cpp.o
-.PHONY : src/ring.o
-
-# target to build an object file
-src/ring.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/ring.cpp.o
-.PHONY : src/ring.cpp.o
-
-src/ring.i: src/ring.cpp.i
-.PHONY : src/ring.i
-
-# target to preprocess a source file
-src/ring.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/ring.cpp.i
-.PHONY : src/ring.cpp.i
-
-src/ring.s: src/ring.cpp.s
-.PHONY : src/ring.s
-
-# target to generate assembly for a file
-src/ring.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/ring.cpp.s
-.PHONY : src/ring.cpp.s
-
-src/timestamp.o: src/timestamp.cpp.o
-.PHONY : src/timestamp.o
+src/buffer/buf_pool.o: src/buffer/buf_pool.cpp.o
+.PHONY : src/buffer/buf_pool.o
 
 # target to build an object file
-src/timestamp.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/timestamp.cpp.o
-.PHONY : src/timestamp.cpp.o
+src/buffer/buf_pool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buf_pool.cpp.o
+.PHONY : src/buffer/buf_pool.cpp.o
 
-src/timestamp.i: src/timestamp.cpp.i
-.PHONY : src/timestamp.i
+src/buffer/buf_pool.i: src/buffer/buf_pool.cpp.i
+.PHONY : src/buffer/buf_pool.i
 
 # target to preprocess a source file
-src/timestamp.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/timestamp.cpp.i
-.PHONY : src/timestamp.cpp.i
+src/buffer/buf_pool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buf_pool.cpp.i
+.PHONY : src/buffer/buf_pool.cpp.i
 
-src/timestamp.s: src/timestamp.cpp.s
-.PHONY : src/timestamp.s
+src/buffer/buf_pool.s: src/buffer/buf_pool.cpp.s
+.PHONY : src/buffer/buf_pool.s
 
 # target to generate assembly for a file
-src/timestamp.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_common.dir/build.make CMakeFiles/proactor_common.dir/src/timestamp.cpp.s
-.PHONY : src/timestamp.cpp.s
+src/buffer/buf_pool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buf_pool.cpp.s
+.PHONY : src/buffer/buf_pool.cpp.s
+
+src/buffer/buffer.o: src/buffer/buffer.cpp.o
+.PHONY : src/buffer/buffer.o
+
+# target to build an object file
+src/buffer/buffer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buffer.cpp.o
+.PHONY : src/buffer/buffer.cpp.o
+
+src/buffer/buffer.i: src/buffer/buffer.cpp.i
+.PHONY : src/buffer/buffer.i
+
+# target to preprocess a source file
+src/buffer/buffer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buffer.cpp.i
+.PHONY : src/buffer/buffer.cpp.i
+
+src/buffer/buffer.s: src/buffer/buffer.cpp.s
+.PHONY : src/buffer/buffer.s
+
+# target to generate assembly for a file
+src/buffer/buffer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/buffer.cpp.s
+.PHONY : src/buffer/buffer.cpp.s
+
+src/buffer/msghdr_pool.o: src/buffer/msghdr_pool.cpp.o
+.PHONY : src/buffer/msghdr_pool.o
+
+# target to build an object file
+src/buffer/msghdr_pool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/msghdr_pool.cpp.o
+.PHONY : src/buffer/msghdr_pool.cpp.o
+
+src/buffer/msghdr_pool.i: src/buffer/msghdr_pool.cpp.i
+.PHONY : src/buffer/msghdr_pool.i
+
+# target to preprocess a source file
+src/buffer/msghdr_pool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/msghdr_pool.cpp.i
+.PHONY : src/buffer/msghdr_pool.cpp.i
+
+src/buffer/msghdr_pool.s: src/buffer/msghdr_pool.cpp.s
+.PHONY : src/buffer/msghdr_pool.s
+
+# target to generate assembly for a file
+src/buffer/msghdr_pool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/buffer/msghdr_pool.cpp.s
+.PHONY : src/buffer/msghdr_pool.cpp.s
+
+src/core/awaiter.o: src/core/awaiter.cpp.o
+.PHONY : src/core/awaiter.o
+
+# target to build an object file
+src/core/awaiter.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/awaiter.cpp.o
+.PHONY : src/core/awaiter.cpp.o
+
+src/core/awaiter.i: src/core/awaiter.cpp.i
+.PHONY : src/core/awaiter.i
+
+# target to preprocess a source file
+src/core/awaiter.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/awaiter.cpp.i
+.PHONY : src/core/awaiter.cpp.i
+
+src/core/awaiter.s: src/core/awaiter.cpp.s
+.PHONY : src/core/awaiter.s
+
+# target to generate assembly for a file
+src/core/awaiter.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/awaiter.cpp.s
+.PHONY : src/core/awaiter.cpp.s
+
+src/core/buf_ring.o: src/core/buf_ring.cpp.o
+.PHONY : src/core/buf_ring.o
+
+# target to build an object file
+src/core/buf_ring.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/buf_ring.cpp.o
+.PHONY : src/core/buf_ring.cpp.o
+
+src/core/buf_ring.i: src/core/buf_ring.cpp.i
+.PHONY : src/core/buf_ring.i
+
+# target to preprocess a source file
+src/core/buf_ring.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/buf_ring.cpp.i
+.PHONY : src/core/buf_ring.cpp.i
+
+src/core/buf_ring.s: src/core/buf_ring.cpp.s
+.PHONY : src/core/buf_ring.s
+
+# target to generate assembly for a file
+src/core/buf_ring.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/buf_ring.cpp.s
+.PHONY : src/core/buf_ring.cpp.s
+
+src/core/io_ring.o: src/core/io_ring.cpp.o
+.PHONY : src/core/io_ring.o
+
+# target to build an object file
+src/core/io_ring.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_ring.cpp.o
+.PHONY : src/core/io_ring.cpp.o
+
+src/core/io_ring.i: src/core/io_ring.cpp.i
+.PHONY : src/core/io_ring.i
+
+# target to preprocess a source file
+src/core/io_ring.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_ring.cpp.i
+.PHONY : src/core/io_ring.cpp.i
+
+src/core/io_ring.s: src/core/io_ring.cpp.s
+.PHONY : src/core/io_ring.s
+
+# target to generate assembly for a file
+src/core/io_ring.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_ring.cpp.s
+.PHONY : src/core/io_ring.cpp.s
+
+src/core/io_thread.o: src/core/io_thread.cpp.o
+.PHONY : src/core/io_thread.o
+
+# target to build an object file
+src/core/io_thread.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_thread.cpp.o
+.PHONY : src/core/io_thread.cpp.o
+
+src/core/io_thread.i: src/core/io_thread.cpp.i
+.PHONY : src/core/io_thread.i
+
+# target to preprocess a source file
+src/core/io_thread.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_thread.cpp.i
+.PHONY : src/core/io_thread.cpp.i
+
+src/core/io_thread.s: src/core/io_thread.cpp.s
+.PHONY : src/core/io_thread.s
+
+# target to generate assembly for a file
+src/core/io_thread.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/io_thread.cpp.s
+.PHONY : src/core/io_thread.cpp.s
+
+src/core/tcp_thread.o: src/core/tcp_thread.cpp.o
+.PHONY : src/core/tcp_thread.o
+
+# target to build an object file
+src/core/tcp_thread.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/tcp_thread.cpp.o
+.PHONY : src/core/tcp_thread.cpp.o
+
+src/core/tcp_thread.i: src/core/tcp_thread.cpp.i
+.PHONY : src/core/tcp_thread.i
+
+# target to preprocess a source file
+src/core/tcp_thread.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/tcp_thread.cpp.i
+.PHONY : src/core/tcp_thread.cpp.i
+
+src/core/tcp_thread.s: src/core/tcp_thread.cpp.s
+.PHONY : src/core/tcp_thread.s
+
+# target to generate assembly for a file
+src/core/tcp_thread.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/tcp_thread.cpp.s
+.PHONY : src/core/tcp_thread.cpp.s
+
+src/core/udp_thread.o: src/core/udp_thread.cpp.o
+.PHONY : src/core/udp_thread.o
+
+# target to build an object file
+src/core/udp_thread.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/udp_thread.cpp.o
+.PHONY : src/core/udp_thread.cpp.o
+
+src/core/udp_thread.i: src/core/udp_thread.cpp.i
+.PHONY : src/core/udp_thread.i
+
+# target to preprocess a source file
+src/core/udp_thread.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/udp_thread.cpp.i
+.PHONY : src/core/udp_thread.cpp.i
+
+src/core/udp_thread.s: src/core/udp_thread.cpp.s
+.PHONY : src/core/udp_thread.s
+
+# target to generate assembly for a file
+src/core/udp_thread.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/core/udp_thread.cpp.s
+.PHONY : src/core/udp_thread.cpp.s
+
+src/net/acceptor.o: src/net/acceptor.cpp.o
+.PHONY : src/net/acceptor.o
+
+# target to build an object file
+src/net/acceptor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/acceptor.cpp.o
+.PHONY : src/net/acceptor.cpp.o
+
+src/net/acceptor.i: src/net/acceptor.cpp.i
+.PHONY : src/net/acceptor.i
+
+# target to preprocess a source file
+src/net/acceptor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/acceptor.cpp.i
+.PHONY : src/net/acceptor.cpp.i
+
+src/net/acceptor.s: src/net/acceptor.cpp.s
+.PHONY : src/net/acceptor.s
+
+# target to generate assembly for a file
+src/net/acceptor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/acceptor.cpp.s
+.PHONY : src/net/acceptor.cpp.s
+
+src/net/channel.o: src/net/channel.cpp.o
+.PHONY : src/net/channel.o
+
+# target to build an object file
+src/net/channel.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/channel.cpp.o
+.PHONY : src/net/channel.cpp.o
+
+src/net/channel.i: src/net/channel.cpp.i
+.PHONY : src/net/channel.i
+
+# target to preprocess a source file
+src/net/channel.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/channel.cpp.i
+.PHONY : src/net/channel.cpp.i
+
+src/net/channel.s: src/net/channel.cpp.s
+.PHONY : src/net/channel.s
+
+# target to generate assembly for a file
+src/net/channel.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/channel.cpp.s
+.PHONY : src/net/channel.cpp.s
+
+src/net/handler.o: src/net/handler.cpp.o
+.PHONY : src/net/handler.o
+
+# target to build an object file
+src/net/handler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/handler.cpp.o
+.PHONY : src/net/handler.cpp.o
+
+src/net/handler.i: src/net/handler.cpp.i
+.PHONY : src/net/handler.i
+
+# target to preprocess a source file
+src/net/handler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/handler.cpp.i
+.PHONY : src/net/handler.cpp.i
+
+src/net/handler.s: src/net/handler.cpp.s
+.PHONY : src/net/handler.s
+
+# target to generate assembly for a file
+src/net/handler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/handler.cpp.s
+.PHONY : src/net/handler.cpp.s
+
+src/net/ip_address.o: src/net/ip_address.cpp.o
+.PHONY : src/net/ip_address.o
+
+# target to build an object file
+src/net/ip_address.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/ip_address.cpp.o
+.PHONY : src/net/ip_address.cpp.o
+
+src/net/ip_address.i: src/net/ip_address.cpp.i
+.PHONY : src/net/ip_address.i
+
+# target to preprocess a source file
+src/net/ip_address.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/ip_address.cpp.i
+.PHONY : src/net/ip_address.cpp.i
+
+src/net/ip_address.s: src/net/ip_address.cpp.s
+.PHONY : src/net/ip_address.s
+
+# target to generate assembly for a file
+src/net/ip_address.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/ip_address.cpp.s
+.PHONY : src/net/ip_address.cpp.s
+
+src/net/server.o: src/net/server.cpp.o
+.PHONY : src/net/server.o
+
+# target to build an object file
+src/net/server.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/server.cpp.o
+.PHONY : src/net/server.cpp.o
+
+src/net/server.i: src/net/server.cpp.i
+.PHONY : src/net/server.i
+
+# target to preprocess a source file
+src/net/server.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/server.cpp.i
+.PHONY : src/net/server.cpp.i
+
+src/net/server.s: src/net/server.cpp.s
+.PHONY : src/net/server.s
+
+# target to generate assembly for a file
+src/net/server.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/server.cpp.s
+.PHONY : src/net/server.cpp.s
+
+src/net/socket.o: src/net/socket.cpp.o
+.PHONY : src/net/socket.o
+
+# target to build an object file
+src/net/socket.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/socket.cpp.o
+.PHONY : src/net/socket.cpp.o
+
+src/net/socket.i: src/net/socket.cpp.i
+.PHONY : src/net/socket.i
+
+# target to preprocess a source file
+src/net/socket.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/socket.cpp.i
+.PHONY : src/net/socket.cpp.i
+
+src/net/socket.s: src/net/socket.cpp.s
+.PHONY : src/net/socket.s
+
+# target to generate assembly for a file
+src/net/socket.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/socket.cpp.s
+.PHONY : src/net/socket.cpp.s
+
+src/net/tcp_channel_pool.o: src/net/tcp_channel_pool.cpp.o
+.PHONY : src/net/tcp_channel_pool.o
+
+# target to build an object file
+src/net/tcp_channel_pool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/tcp_channel_pool.cpp.o
+.PHONY : src/net/tcp_channel_pool.cpp.o
+
+src/net/tcp_channel_pool.i: src/net/tcp_channel_pool.cpp.i
+.PHONY : src/net/tcp_channel_pool.i
+
+# target to preprocess a source file
+src/net/tcp_channel_pool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/tcp_channel_pool.cpp.i
+.PHONY : src/net/tcp_channel_pool.cpp.i
+
+src/net/tcp_channel_pool.s: src/net/tcp_channel_pool.cpp.s
+.PHONY : src/net/tcp_channel_pool.s
+
+# target to generate assembly for a file
+src/net/tcp_channel_pool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/net/tcp_channel_pool.cpp.s
+.PHONY : src/net/tcp_channel_pool.cpp.s
+
+src/util/log.o: src/util/log.cpp.o
+.PHONY : src/util/log.o
+
+# target to build an object file
+src/util/log.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/log.cpp.o
+.PHONY : src/util/log.cpp.o
+
+src/util/log.i: src/util/log.cpp.i
+.PHONY : src/util/log.i
+
+# target to preprocess a source file
+src/util/log.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/log.cpp.i
+.PHONY : src/util/log.cpp.i
+
+src/util/log.s: src/util/log.cpp.s
+.PHONY : src/util/log.s
+
+# target to generate assembly for a file
+src/util/log.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/log.cpp.s
+.PHONY : src/util/log.cpp.s
+
+src/util/timestamp.o: src/util/timestamp.cpp.o
+.PHONY : src/util/timestamp.o
+
+# target to build an object file
+src/util/timestamp.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/timestamp.cpp.o
+.PHONY : src/util/timestamp.cpp.o
+
+src/util/timestamp.i: src/util/timestamp.cpp.i
+.PHONY : src/util/timestamp.i
+
+# target to preprocess a source file
+src/util/timestamp.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/timestamp.cpp.i
+.PHONY : src/util/timestamp.cpp.i
+
+src/util/timestamp.s: src/util/timestamp.cpp.s
+.PHONY : src/util/timestamp.s
+
+# target to generate assembly for a file
+src/util/timestamp.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/proactor_server_core.dir/build.make CMakeFiles/proactor_server_core.dir/src/util/timestamp.cpp.s
+.PHONY : src/util/timestamp.cpp.s
+
+test/bench.o: test/bench.cpp.o
+.PHONY : test/bench.o
+
+# target to build an object file
+test/bench.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/bench.dir/build.make CMakeFiles/bench.dir/test/bench.cpp.o
+.PHONY : test/bench.cpp.o
+
+test/bench.i: test/bench.cpp.i
+.PHONY : test/bench.i
+
+# target to preprocess a source file
+test/bench.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/bench.dir/build.make CMakeFiles/bench.dir/test/bench.cpp.i
+.PHONY : test/bench.cpp.i
+
+test/bench.s: test/bench.cpp.s
+.PHONY : test/bench.s
+
+# target to generate assembly for a file
+test/bench.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/bench.dir/build.make CMakeFiles/bench.dir/test/bench.cpp.s
+.PHONY : test/bench.cpp.s
+
+test/echo_server.o: test/echo_server.cpp.o
+.PHONY : test/echo_server.o
+
+# target to build an object file
+test/echo_server.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo_server.dir/build.make CMakeFiles/echo_server.dir/test/echo_server.cpp.o
+.PHONY : test/echo_server.cpp.o
+
+test/echo_server.i: test/echo_server.cpp.i
+.PHONY : test/echo_server.i
+
+# target to preprocess a source file
+test/echo_server.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo_server.dir/build.make CMakeFiles/echo_server.dir/test/echo_server.cpp.i
+.PHONY : test/echo_server.cpp.i
+
+test/echo_server.s: test/echo_server.cpp.s
+.PHONY : test/echo_server.s
+
+# target to generate assembly for a file
+test/echo_server.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/echo_server.dir/build.make CMakeFiles/echo_server.dir/test/echo_server.cpp.s
+.PHONY : test/echo_server.cpp.s
 
 # Help Target
 help:
@@ -209,16 +643,69 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... proactor_common"
-	@echo "... src/log.o"
-	@echo "... src/log.i"
-	@echo "... src/log.s"
-	@echo "... src/ring.o"
-	@echo "... src/ring.i"
-	@echo "... src/ring.s"
-	@echo "... src/timestamp.o"
-	@echo "... src/timestamp.i"
-	@echo "... src/timestamp.s"
+	@echo "... bench"
+	@echo "... echo_server"
+	@echo "... proactor_server_core"
+	@echo "... src/buffer/buf_pool.o"
+	@echo "... src/buffer/buf_pool.i"
+	@echo "... src/buffer/buf_pool.s"
+	@echo "... src/buffer/buffer.o"
+	@echo "... src/buffer/buffer.i"
+	@echo "... src/buffer/buffer.s"
+	@echo "... src/buffer/msghdr_pool.o"
+	@echo "... src/buffer/msghdr_pool.i"
+	@echo "... src/buffer/msghdr_pool.s"
+	@echo "... src/core/awaiter.o"
+	@echo "... src/core/awaiter.i"
+	@echo "... src/core/awaiter.s"
+	@echo "... src/core/buf_ring.o"
+	@echo "... src/core/buf_ring.i"
+	@echo "... src/core/buf_ring.s"
+	@echo "... src/core/io_ring.o"
+	@echo "... src/core/io_ring.i"
+	@echo "... src/core/io_ring.s"
+	@echo "... src/core/io_thread.o"
+	@echo "... src/core/io_thread.i"
+	@echo "... src/core/io_thread.s"
+	@echo "... src/core/tcp_thread.o"
+	@echo "... src/core/tcp_thread.i"
+	@echo "... src/core/tcp_thread.s"
+	@echo "... src/core/udp_thread.o"
+	@echo "... src/core/udp_thread.i"
+	@echo "... src/core/udp_thread.s"
+	@echo "... src/net/acceptor.o"
+	@echo "... src/net/acceptor.i"
+	@echo "... src/net/acceptor.s"
+	@echo "... src/net/channel.o"
+	@echo "... src/net/channel.i"
+	@echo "... src/net/channel.s"
+	@echo "... src/net/handler.o"
+	@echo "... src/net/handler.i"
+	@echo "... src/net/handler.s"
+	@echo "... src/net/ip_address.o"
+	@echo "... src/net/ip_address.i"
+	@echo "... src/net/ip_address.s"
+	@echo "... src/net/server.o"
+	@echo "... src/net/server.i"
+	@echo "... src/net/server.s"
+	@echo "... src/net/socket.o"
+	@echo "... src/net/socket.i"
+	@echo "... src/net/socket.s"
+	@echo "... src/net/tcp_channel_pool.o"
+	@echo "... src/net/tcp_channel_pool.i"
+	@echo "... src/net/tcp_channel_pool.s"
+	@echo "... src/util/log.o"
+	@echo "... src/util/log.i"
+	@echo "... src/util/log.s"
+	@echo "... src/util/timestamp.o"
+	@echo "... src/util/timestamp.i"
+	@echo "... src/util/timestamp.s"
+	@echo "... test/bench.o"
+	@echo "... test/bench.i"
+	@echo "... test/bench.s"
+	@echo "... test/echo_server.o"
+	@echo "... test/echo_server.i"
+	@echo "... test/echo_server.s"
 .PHONY : help
 
 

@@ -17,12 +17,17 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake"
   "/usr/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake"
   "/usr/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake"
+  "/usr/share/cmake-3.28/Modules/CheckCXXSourceCompiles.cmake"
+  "/usr/share/cmake-3.28/Modules/CheckIncludeFileCXX.cmake"
+  "/usr/share/cmake-3.28/Modules/CheckLibraryExists.cmake"
   "/usr/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
   "/usr/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake"
   "/usr/share/cmake-3.28/Modules/Compiler/GNU.cmake"
   "/usr/share/cmake-3.28/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake-3.28/Modules/FindPackageMessage.cmake"
   "/usr/share/cmake-3.28/Modules/FindPkgConfig.cmake"
+  "/usr/share/cmake-3.28/Modules/FindThreads.cmake"
+  "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake"
   "/usr/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake"
   "/usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake"
   "/usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake"
@@ -43,5 +48,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/proactor_common.dir/DependInfo.cmake"
+  "CMakeFiles/proactor_server_core.dir/DependInfo.cmake"
+  "CMakeFiles/echo_server.dir/DependInfo.cmake"
+  "CMakeFiles/bench.dir/DependInfo.cmake"
   )

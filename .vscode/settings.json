@@ -1,4 +1,8 @@
 {
     "editor.lineNumbers": "on",
-    "vim.smartRelativeLine": true
+    "vim.smartRelativeLine": true,
+    "chat.tools.terminal.autoApprove": {
+        "g++": true,
+        "/tmp/bench": true
+    }
 }
