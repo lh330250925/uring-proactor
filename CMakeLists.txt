@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(proactor_server CXX)
+project(uring_proactor CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +13,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(URING REQUIRED liburing)
 find_library(NUMA_LIB numa REQUIRED)
 
-add_library(proactor_server_core STATIC
+add_library(uring_proactor STATIC
     src/buffer/buf_pool.cpp
     src/buffer/buffer.cpp
     src/buffer/msghdr_pool.cpp
@@ -34,22 +34,22 @@ add_library(proactor_server_core STATIC
     src/util/timestamp.cpp
 )
 
-target_include_directories(proactor_server_core PUBLIC
+target_include_directories(uring_proactor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${URING_INCLUDE_DIRS}
 )
 
-target_link_libraries(proactor_server_core PUBLIC
+target_link_libraries(uring_proactor PUBLIC
     ${URING_LIBRARIES}
     ${NUMA_LIB}
 )
 
-target_compile_options(proactor_server_core PRIVATE
+target_compile_options(uring_proactor PRIVATE
     -Wall -Wextra -O3
 )
 
 add_executable(echo_server test/echo_server.cpp)
-target_link_libraries(echo_server PRIVATE proactor_server_core)
+target_link_libraries(echo_server PRIVATE uring_proactor)
 
 find_package(Threads REQUIRED)
 
