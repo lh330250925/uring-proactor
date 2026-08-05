@@ -19,6 +19,7 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <thread>
 #include "net/server.hpp"
 #include "net/channel.hpp"
@@ -92,11 +93,20 @@ int main(int argc, char **argv)
     std::signal(SIGTERM, [](int) { g_running = false; });
 
     bool cpu_affinity = false;
+    bool run_tcp = true;
+    bool run_udp = true;
+    int requested_threads = 0;
     Logger::LogLevel log_level = Logger::LogLevel::WARNING;
     for (int i = 1; i < argc; ++i)
     {
         if (std::strcmp(argv[i], "--sqpoll") == 0)
             cpu_affinity = true;
+        else if (std::strcmp(argv[i], "--no-tcp") == 0)
+            run_tcp = false;
+        else if (std::strcmp(argv[i], "--no-udp") == 0)
+            run_udp = false;
+        else if (std::strcmp(argv[i], "--threads") == 0 && i + 1 < argc)
+            requested_threads = std::max(1, std::atoi(argv[++i]));
         else if (std::strcmp(argv[i], "--log-level") == 0 && i + 1 < argc)
         {
             ++i;
@@ -110,20 +120,35 @@ int main(int argc, char **argv)
 
     int hw = static_cast<int>(std::thread::hardware_concurrency());
     // In SQPOLL mode each thread pair occupies 2 CPUs; leave 2 CPUs for bench client.
-    int threads = cpu_affinity ? std::max(1, hw / 2 - 1) : hw;
+    int threads = requested_threads > 0
+                ? requested_threads
+                : (cpu_affinity ? std::max(1, hw / 2 - 1) : hw);
     if (threads < 1) threads = 1;
 
     std::printf("Mode: %s, threads=%d\n",
                 cpu_affinity ? "SQPOLL+cpu_affinity" : "normal", threads);
 
-    TcpEchoServer tcp(8080, threads, cpu_affinity);
-    UdpEchoServer udp(8081, threads, cpu_affinity);
+    if (!run_tcp && !run_udp)
+    {
+        std::fprintf(stderr, "At least one protocol must be enabled.\n");
+        return 2;
+    }
 
-    tcp.start();
-    udp.start();
+    std::unique_ptr<TcpEchoServer> tcp;
+    std::unique_ptr<UdpEchoServer> udp;
+    if (run_tcp)
+    {
+        tcp = std::make_unique<TcpEchoServer>(8080, threads, cpu_affinity);
+        tcp->start();
+        std::printf("TCP echo listening on :8080\n");
+    }
+    if (run_udp)
+    {
+        udp = std::make_unique<UdpEchoServer>(8081, threads, cpu_affinity);
+        udp->start();
+        std::printf("UDP echo listening on :8081\n");
+    }
 
-    std::printf("TCP echo listening on :8080\n");
-    std::printf("UDP echo listening on :8081\n");
     std::printf("Press Ctrl+C to stop.\n");
 
     while (g_running)

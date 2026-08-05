@@ -10,8 +10,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(URING REQUIRED liburing)
-find_library(NUMA_LIB numa REQUIRED)
+pkg_check_modules(URING REQUIRED IMPORTED_TARGET liburing)
+pkg_check_modules(NUMA REQUIRED IMPORTED_TARGET numa)
 
 add_library(uring_proactor STATIC
     src/buffer/buf_pool.cpp
@@ -36,12 +36,11 @@ add_library(uring_proactor STATIC
 
 target_include_directories(uring_proactor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${URING_INCLUDE_DIRS}
 )
 
 target_link_libraries(uring_proactor PUBLIC
-    ${URING_LIBRARIES}
-    ${NUMA_LIB}
+    PkgConfig::URING
+    PkgConfig::NUMA
 )
 
 target_compile_options(uring_proactor PRIVATE

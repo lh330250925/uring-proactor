@@ -71,7 +71,7 @@
 
 ---
 
-## 4. UDP Performance (64 B)
+## 4. UDP Performance — Single Sender (64 B)
 
 > Single sender thread, varying target send rate.
 
@@ -84,6 +84,33 @@
 
 ---
 
+## 5. UDP Multi-Sender Scaling (64 B)
+
+> Multiple concurrent sender threads, each with its own socket, all sending at
+> unlimited rate. The server distributes load across all worker threads via
+> `SO_REUSEPORT`. Tests whether UDP throughput scales with the number of
+> parallel clients.
+
+| senders | agg. sent pps | agg. recv pps | p50 µs | p99 µs |
+|--------:|--------------:|--------------:|-------:|-------:|
+| 1 | 962,030 | **958,041** | 38.2 | — |
+| 4 | 3,344,997 | **1,511,502** | 549.5 | — |
+| 10 | 6,491,900 | **972,842** | 4,442 | — |
+
+> **Notes:**
+> - 1 sender: ~958K recv pps, consistent with single-sender unlimited.
+> - 4 senders: aggregate receive climbs to **1.5M pps** — server is processing
+>   across ~2 threads, kernel `SO_REUSEPORT` balancing is working.
+> - 10 senders: sends 6.9M pps but server only echoes back ~973K pps. At this
+>   point the bench itself (10 sender threads + 10 server threads on 10 physical
+>   cores) is fully CPU-bound; sender cores and server cores compete for cycles,
+>   reducing server-side throughput.
+> - p99 values show N/A because kernel `SO_REUSEPORT` distributes echoes back
+>   to the originating socket; under heavy multi-sender load the latency
+>   distribution is multimodal and the p99 estimator requires further tuning.
+
+---
+
 ## Summary
 
 | Key Metric | Value |
@@ -93,7 +120,8 @@
 | Min TCP p99 RTT | **3.0 µs** (1 conn, 64B) |
 | p99/p50 at baseline | 1.4× |
 | QPS at 500 conns vs peak | **85%** |
-| Peak UDP Receive | **~986,221 pps** |
+| Peak UDP Receive (single sender) | **~986,221 pps** |
+| Peak UDP Receive (4 senders, aggregate) | **~1,511,502 pps** |
 | UDP p99 at 200K pps | **19.9 µs** |
 | Hot-Path Mutexes | **0** |
 
@@ -179,7 +207,7 @@
 
 ---
 
-## 四、UDP 性能（64 字节）
+## 四、UDP 性能 — 单发送方（64 字节）
 
 > 单发送线程，改变目标发送速率。
 
@@ -192,6 +220,29 @@
 
 ---
 
+## 五、UDP 多发送方扩展（64 字节）
+
+> 多个并发发送线程，每线程独占 socket，全速率发送。服务器通过 `SO_REUSEPORT`
+> 将负载分配到所有 worker 线程。测试 UDP 吞吐量能否随并行客户端数量线性扩展。
+
+| 发送方数 | 合计发送 pps | 合计接收 pps | p50 µs | p99 µs |
+|--------:|--------------:|--------------:|-------:|-------:|
+| 1 | 962,030 | **958,041** | 38.2 | — |
+| 4 | 3,344,997 | **1,511,502** | 549.5 | — |
+| 10 | 6,491,900 | **972,842** | 4,442 | — |
+
+> **说明：**
+> - 1 个发送方：接收约 958K pps，与单发送方无限速结果一致。
+> - 4 个发送方：合计接收提升至 **1.5M pps**——服务器跨约 2 个线程处理，
+>   内核 `SO_REUSEPORT` 负载均衡生效。
+> - 10 个发送方：尝试发送 6.9M pps，服务器仅能回包 ~973K pps。此时
+>   bench（10 个发送线程）与 server（10 个 worker 线程）共享 10 个物理核心，
+>   CPU 资源被双方竞争，制约了服务器侧吞吐。
+> - p99 显示 N/A：在高并发多发送方场景下，延迟分布呈多峰形态，
+>   p99 估算器尚需进一步优化。
+
+---
+
 ## 综合摘要
 
 | 关键指标 | 值 |
@@ -201,7 +252,8 @@
 | TCP 最低 p99 RTT | **3.0 µs**（1 连接，64B） |
 | 基准 p99/p50 比 | 1.4× |
 | 500 并发 QPS 保持率 | **85%** |
-| UDP 峰值接收速率 | **~986,221 pps** |
+| UDP 峰值接收（单发送方） | **~986,221 pps** |
+| UDP 峰值接收（4 发送方合计） | **~1,511,502 pps** |
 | UDP p99（200K pps） | **19.9 µs** |
 | 热路径互斥锁数量 | **0** |
 

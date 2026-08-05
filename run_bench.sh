@@ -36,9 +36,17 @@ _max()  { grep 'max  ='     <<< "$1" | grep -oE '[0-9]+\.[0-9]+'        | head -
 _loss() { grep 'Packet loss' <<< "$1" | grep -oE '[0-9]+\.[0-9]+'       | head -1; }
 _sent() { grep 'Sent:'      <<< "$1" | grep -oE '[0-9]+ pps' | grep -oE '^[0-9]+' | head -1; }
 _recv() { grep 'Received:'  <<< "$1" | grep -oE '[0-9]+ pps' | grep -oE '^[0-9]+' | head -1; }
+# UDP scaling helpers: $1=sender_count $2=output_text
+_us_field() { grep -E "^│  $1 " <<< "$3" | tr -d '%│' | awk -v field="$2" '{print $field}'; }
+_us_sent()  { _us_field "$1" 2 "$2"; }
+_us_recv()  { _us_field "$1" 3 "$2"; }
+_us_loss()  { _us_field "$1" 4 "$2"; }
+_us_p50()   { _us_field "$1" 5 "$2"; }
+_us_p99()   { _us_field "$1" 7 "$2"; }
 
-tcp_bench() { $BENCH --no-udp --no-sweep --conns "$1" --tcp-size "$2" --duration $DURATION 2>&1; }
-udp_bench() { $BENCH --no-tcp --udp-rate "$1" --duration $DURATION 2>&1; }
+tcp_bench()       { $BENCH --no-udp --no-sweep --conns "$1" --tcp-size "$2" --duration $DURATION 2>&1; }
+udp_bench()       { $BENCH --no-tcp --no-udp-sweep --udp-rate "$1" --duration $DURATION 2>&1; }
+udp_sweep_bench() { $BENCH --no-tcp --no-udp-rate --duration $DURATION 2>&1; }
 
 # ─── start server ─────────────────────────────────────────────────────────────
 pkill -9 -f "build/echo_server" 2>/dev/null || true
@@ -124,7 +132,7 @@ done
 # ══════════════════════════════════════ TEST 4: UDP Rate Sweep ═════════════════
 echo ""
 echo "──────────────────────────────────────────────────────────────────"
-echo " TEST 4/4  UDP Rate Sweep  (64B)"
+echo " TEST 4/5  UDP Rate Sweep  (64B, single sender)"
 echo "──────────────────────────────────────────────────────────────────"
 printf "  %-12s  %-10s  %-10s  %-8s  %-7s  %s\n" \
     "target pps" "sent pps" "recv pps" "loss %" "p50 µs" "p99 µs"
@@ -138,6 +146,27 @@ for rate in 100000 200000 500000 0; do
     printf "  %-12s  %-10s  %-10s  %-8s  %-7s  %s\n" \
         "$label" "${T4_SENT[$rate]}" "${T4_RECV[$rate]}" \
         "${T4_LOSS[$rate]}%" "${T4_P50[$rate]}" "${T4_P99[$rate]}"
+done
+
+# ══════════════════════════════════════════════ TEST 5: UDP Multi-Sender Scaling ═════════
+echo ""
+echo "──────────────────────────────────────────────────────────────────"
+echo " TEST 5/5  UDP Multi-Sender Scaling  (64B, unlimited rate)"
+echo "──────────────────────────────────────────────────────────────────"
+printf "  %-8s  %-12s  %-12s  %-8s  %-7s  %s\n" \
+    senders "sent pps" "recv pps" "loss %" "p50 µs" "p99 µs"
+
+OUT5=$(udp_sweep_bench)
+declare -A T5_SENT T5_RECV T5_LOSS T5_P50 T5_P99
+for s in 1 4 10; do
+    T5_SENT[$s]=$(_us_sent "$s" "$OUT5")
+    T5_RECV[$s]=$(_us_recv "$s" "$OUT5")
+    T5_LOSS[$s]=$(_us_loss "$s" "$OUT5")
+    T5_P50[$s]=$(_us_p50  "$s" "$OUT5")
+    T5_P99[$s]=$(_us_p99  "$s" "$OUT5")
+    printf "  %-8d  %-12s  %-12s  %-8s  %-7s  %s\n" \
+        "$s" "${T5_SENT[$s]:-N/A}" "${T5_RECV[$s]:-N/A}" \
+        "${T5_LOSS[$s]:-N/A}%" "${T5_P50[$s]:-N/A}" "${T5_P99[$s]:-N/A}"
 done
 
 # ─── stop server ──────────────────────────────────────────────────────────────
@@ -157,6 +186,7 @@ for rate in 100000 200000 500000 0; do
     r=${T4_RECV[$rate]:-0}
     if (( r > PEAK_UDP_RECV )); then PEAK_UDP_RECV=$r; fi
 done
+PEAK_UDP_MULTI=${T5_RECV[10]:-N/A}
 
 P99_P50_RATIO=$(awk "BEGIN { p=\"${T1_P99:-0}\"; v=\"${T1_P50:-1}\"; if (v+0>0) printf \"%.1fx\", p/v; else print \"N/A\" }")
 P99_GROWTH=$(awk "BEGIN { a=\"${T2_P99[100]:-0}\"; b=\"${T1_P99:-1}\"; if (b+0>0) printf \"%.1fx\", a/b; else print \"N/A\" }")
@@ -197,7 +227,8 @@ cat > "$REPORT" << MDEOF
 | p99/p50 at baseline | ${P99_P50_RATIO} |
 | p99 at 100 conns vs 1 conn | ${P99_GROWTH} |
 | QPS at 500 conns vs peak | ${QPS_500_PCT} |
-| Peak UDP receive rate | **${PEAK_UDP_RECV} pps** |
+| Peak UDP receive rate (single sender) | **${PEAK_UDP_RECV} pps** |
+| Peak UDP receive rate (10 senders) | **${PEAK_UDP_MULTI} pps** |
 
 ---
 
@@ -254,7 +285,7 @@ of bandwidth despite lower msg/s).
 
 ---
 
-## 4. UDP Performance
+## 4. UDP Performance (Single Sender)
 
 > 64-byte datagrams, single sender thread, varying target send rate.
 > Measures max sustainable throughput and packet loss boundary.
@@ -265,6 +296,22 @@ of bandwidth despite lower msg/s).
 | 200,000 | ${T4_SENT[200000]} | ${T4_RECV[200000]} | ${T4_LOSS[200000]}% | ${T4_P50[200000]} | ${T4_P99[200000]} |
 | 500,000 | ${T4_SENT[500000]} | ${T4_RECV[500000]} | ${T4_LOSS[500000]}% | ${T4_P50[500000]} | ${T4_P99[500000]} |
 | unlimited | ${T4_SENT[0]} | ${T4_RECV[0]} | ${T4_LOSS[0]}% | ${T4_P50[0]} | ${T4_P99[0]} |
+
+---
+
+## 5. UDP Multi-Sender Scaling
+
+> 64-byte datagrams, unlimited rate, varying concurrent sender threads.
+> Each sender uses its own socket; the server distributes load via
+> SO_REUSEPORT across all worker threads.
+
+| senders | sent pps | recv pps | loss % | p50 µs | p99 µs |
+|--------:|---------:|---------:|-------:|-------:|-------:|
+| 1 | ${T5_SENT[1]:-N/A} | ${T5_RECV[1]:-N/A} | ${T5_LOSS[1]:-N/A}% | ${T5_P50[1]:-N/A} | ${T5_P99[1]:-N/A} |
+| 4 | ${T5_SENT[4]:-N/A} | ${T5_RECV[4]:-N/A} | ${T5_LOSS[4]:-N/A}% | ${T5_P50[4]:-N/A} | ${T5_P99[4]:-N/A} |
+| 10 | ${T5_SENT[10]:-N/A} | ${T5_RECV[10]:-N/A} | ${T5_LOSS[10]:-N/A}% | ${T5_P50[10]:-N/A} | ${T5_P99[10]:-N/A} |
+
+**Peak UDP receive rate with 10 senders: ${PEAK_UDP_MULTI} pps.**
 
 ---
 
@@ -300,10 +347,11 @@ of bandwidth despite lower msg/s).
 
 ### UDP
 
-- At 200K pps loss is ${T4_LOSS[200000]}%; at 500K it becomes ${T4_LOSS[500000]}%.
-- Unlimited mode demonstrates raw kernel/io_uring UDP path capacity: 
-  ${T4_RECV[0]} pps received. Loss here reflects bench sender outrunning the
-  kernel socket receive buffer, not server-side processing backlog.
+- At 200K pps (single sender) loss is ${T4_LOSS[200000]}%; at 500K it becomes ${T4_LOSS[500000]}%.
+- Unlimited mode (single sender) demonstrates raw single-core UDP path capacity:
+  ${T4_RECV[0]} pps received.
+- With 10 concurrent sender sockets, the server receives **${PEAK_UDP_MULTI} pps**
+  by distributing load across all io_uring worker threads via SO_REUSEPORT.
 - RTT p99 at 200K pps = ${T4_P99[200000]} µs — comparable to TCP p99 at similar
   load, confirming the io_uring recvmsg path is symmetric.
 
