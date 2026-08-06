@@ -106,11 +106,18 @@ public:
     {
         MsghdrSlot *slot = write_buf_.acquire_slot();
         if (!slot)
+        {
+            write_buf_.discard_pending();
             return false;
+        }
         std::memcpy(&slot->addr, addr, namelen);
         slot->hdr.msg_namelen = namelen;
         if (!write_buf_.submit(slot))
+        {
+            write_buf_.release_slot(slot);
+            write_buf_.discard_pending();
             return false;
+        }
         notify();
         return true;
     }

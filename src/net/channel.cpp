@@ -6,7 +6,7 @@
 
 TcpChannel::TcpChannel(int fd, TcpChannelPool &pool)
     : Channel(fd, pool.thread().get_ring()),
-      read_buf_(pool.thread().get_buf_ring(), pool.thread().get_server().get_channel_capacity()),
+    read_buf_(pool.thread().get_buf_ring()),
       write_buf_(pool.thread().get_buf_pool(), pool.thread().get_server().get_channel_capacity()),
       pool_(pool),
       server_(pool.thread().get_server())
@@ -53,7 +53,7 @@ void TcpChannel::assign(int fd)
 
 UdpChannel::UdpChannel(UdpThread &thread)
     : Channel(-1, thread.get_ring()),
-      read_buf_(thread.get_buf_ring(), thread.get_server().get_channel_capacity()),
+    read_buf_(thread.get_buf_ring()),
       write_buf_(thread.get_buf_pool(), thread.get_msghdr_pool(), thread.get_server().get_channel_capacity()),
       thread_(thread)
 {

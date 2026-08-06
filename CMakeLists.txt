@@ -4,6 +4,7 @@ project(uring_proactor CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -47,10 +48,12 @@ target_compile_options(uring_proactor PRIVATE
     -Wall -Wextra -O3
 )
 
-add_executable(echo_server test/echo_server.cpp)
+add_executable(echo_server benchmarks/echo_server.cpp)
 target_link_libraries(echo_server PRIVATE uring_proactor)
 
 find_package(Threads REQUIRED)
 
-add_executable(bench test/bench.cpp)
+add_executable(bench benchmarks/bench.cpp)
 target_link_libraries(bench PRIVATE Threads::Threads)
+
+add_executable(connection_scale benchmarks/connection_scale.cpp)

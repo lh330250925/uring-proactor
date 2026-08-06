@@ -1,14 +1,14 @@
 #include "buffer/buffer.hpp"
 #include <algorithm>
 #include <netinet/in.h>
-ReadBufBase::ReadBufBase(BufRing &buf_ring, int capacity)
-    : buf_queue_(new unsigned int[capacity]),
+ReadBufBase::ReadBufBase(BufRing &buf_ring)
+        : buf_queue_(new unsigned int[buf_ring.buf_num()]),
       buf_ring_(&buf_ring),
-      capacity_(capacity),
-      mask_(capacity - 1)
+            capacity_(buf_ring.buf_num()),
+            mask_(buf_ring.buf_num() - 1)
 {
-    peek_result_.data = new char *[capacity];
-    peek_result_.size = new unsigned int[capacity];
+        peek_result_.data = new char *[capacity_];
+        peek_result_.size = new unsigned int[capacity_];
 }
 ReadBufBase::~ReadBufBase()
 {
@@ -24,8 +24,8 @@ bool ReadBufBase::push_buf(unsigned int idx)
     readable_bytes_ += buf_ring_->data_size(idx);
     return true;
 }
-ReadBufStream::ReadBufStream(BufRing &buf_ring, int capacity)
-    : ReadBufBase(buf_ring, capacity) {}
+ReadBufStream::ReadBufStream(BufRing &buf_ring)
+    : ReadBufBase(buf_ring) {}
 
 ReadBufBase::PeekResult *ReadBufStream::peek(unsigned int size)
 {
@@ -67,8 +67,8 @@ bool ReadBufStream::consume(unsigned int size)
     }
     return true;
 }
-ReadBufDgram::ReadBufDgram(BufRing &buf_ring, int capacity)
-    : ReadBufBase(buf_ring, capacity), recv_msghdr_{}
+ReadBufDgram::ReadBufDgram(BufRing &buf_ring)
+    : ReadBufBase(buf_ring), recv_msghdr_{}
 {
     recv_msghdr_.msg_namelen = sizeof(sockaddr_in);
     recv_msghdr_.msg_controllen = 0;
@@ -105,9 +105,15 @@ WriteBufBase::~WriteBufBase()
     delete[] pending_bufs_;
     delete[] send_queue_;
 }
+void WriteBufBase::discard_pending()
+{
+    while (pending_head_ != pending_tail_)
+        buf_pool_->release(pending_bufs_[pending_head_++ & mask_]);
+    pending_head_ = pending_tail_ = 0;
+}
 bool WriteBufBase::append(const char *data, unsigned int size)
 {
-    const int original_tail = pending_tail_;
+    const uint64_t original_tail = pending_tail_;
     const bool was_empty = (pending_head_ == pending_tail_);
     unsigned int original_tail_size = 0;
     if (was_empty)
@@ -136,12 +142,20 @@ bool WriteBufBase::append(const char *data, unsigned int size)
         }
         if (size > 0)
         {
+            if (pending_tail_ - pending_head_ >= static_cast<uint64_t>(capacity_))
+            {
+                if (!was_empty)
+                    buf_pool_->set_data_size(pending_bufs_[(original_tail - 1) & mask_], original_tail_size);
+                while (pending_tail_ != original_tail)
+                    buf_pool_->release(pending_bufs_[--pending_tail_ & mask_]);
+                return false;
+            }
             auto idx = buf_pool_->acquire();
             if (idx == BufPool::invalid_idx)
             {
                 if (!was_empty)
                     buf_pool_->set_data_size(pending_bufs_[(original_tail - 1) & mask_], original_tail_size);
-                while (pending_tail_ > original_tail)
+                while (pending_tail_ != original_tail)
                     buf_pool_->release(pending_bufs_[--pending_tail_ & mask_]);
                 return false;
             }
@@ -153,13 +167,16 @@ bool WriteBufBase::append(const char *data, unsigned int size)
 bool WriteBufBase::prepend(const char *data, unsigned int size)
 {
     unsigned int block_to_write = (size + buf_pool_->buf_size() - 1) / buf_pool_->buf_size();
-    int new_head = pending_head_ - block_to_write;
-    for (int i = new_head; i < pending_head_; ++i)
+    uint64_t pending_count = pending_tail_ - pending_head_;
+    if (block_to_write > static_cast<uint64_t>(capacity_) - pending_count)
+        return false;
+    uint64_t new_head = pending_head_ - block_to_write;
+    for (uint64_t i = new_head; i != pending_head_; ++i)
     {
         auto idx = buf_pool_->acquire();
         if (idx == BufPool::invalid_idx)
         {
-            for (int j = new_head; j < i; ++j)
+            for (uint64_t j = new_head; j != i; ++j)
                 buf_pool_->release(pending_bufs_[j & mask_]);
             return false;
         }
@@ -184,15 +201,20 @@ WriteBufStream::~WriteBufStream()
 
 bool WriteBufStream::submit()
 {
-    if (pending_head_ == pending_tail_)
+    uint64_t pending_count = pending_tail_ - pending_head_;
+    if (pending_count == 0)
+        return false;
+    uint64_t send_count = send_tail_ - send_head_;
+    if (pending_count > static_cast<uint64_t>(capacity_) - send_count)
         return false;
     while (pending_head_ != pending_tail_)
         send_queue_[send_tail_++ & mask_] = pending_bufs_[pending_head_++ & mask_];
     return true;
 }
-const iovec *WriteBufStream::peek_iovec(int &count) const
+const iovec *WriteBufStream::peek_iovec(int &count, unsigned int &bytes) const
 {
-    count = send_tail_ - send_head_;
+    count = static_cast<int>(send_tail_ - send_head_);
+    bytes = 0;
     if (count <= 0)
     {
         count = 0;
@@ -201,17 +223,30 @@ const iovec *WriteBufStream::peek_iovec(int &count) const
     for (int i = 0; i < count; ++i)
     {
         unsigned int idx = send_queue_[(send_head_ + i) & mask_];
-        iovec_[i].iov_base = buf_pool_->buf_addr(idx);
-        iovec_[i].iov_len = buf_pool_->data_size(idx);
+        unsigned int offset = i == 0 ? send_head_offset_ : 0;
+        iovec_[i].iov_base = buf_pool_->buf_addr(idx) + offset;
+        iovec_[i].iov_len = buf_pool_->data_size(idx) - offset;
+        bytes += static_cast<unsigned int>(iovec_[i].iov_len);
     }
     return iovec_;
 }
-void WriteBufStream::release()
+void WriteBufStream::consume_written(unsigned int bytes)
 {
-    if (release_guard_ <= send_head_)
-        return;
-    while (send_head_ != send_tail_ && send_head_ != release_guard_)
-        buf_pool_->release(send_queue_[send_head_++ & mask_]);
+    while (bytes > 0)
+    {
+        assert(send_head_ != send_tail_);
+        unsigned int idx = send_queue_[send_head_ & mask_];
+        unsigned int remaining = buf_pool_->data_size(idx) - send_head_offset_;
+        if (bytes < remaining)
+        {
+            send_head_offset_ += bytes;
+            return;
+        }
+        bytes -= remaining;
+        buf_pool_->release(idx);
+        ++send_head_;
+        send_head_offset_ = 0;
+    }
 }
 WriteBufDgram::WriteBufDgram(BufPool &buf_pool, MsghdrPool &msghdr_pool, int capacity)
     : WriteBufBase(buf_pool, capacity),
@@ -225,24 +260,22 @@ WriteBufDgram::~WriteBufDgram()
 }
 bool WriteBufDgram::submit(MsghdrSlot *slot)
 {
-    if (pending_head_ == pending_tail_)
+    uint64_t pending_count = pending_tail_ - pending_head_;
+    if (pending_count == 0)
         return false;
-    if (msghdr_tail_ - msghdr_head_ >= capacity_)
+    if (msghdr_tail_ - msghdr_head_ >= static_cast<uint64_t>(capacity_))
         return false;
     if (!slot)
+        return false;
+    if (pending_count > static_cast<uint64_t>(max_iov_))
         return false;
     int iov_count = 0;
     while (pending_head_ != pending_tail_)
     {
         unsigned int idx = pending_bufs_[pending_head_++ & mask_];
-        if (iov_count < max_iov_)
-        {
-            slot->iov[iov_count].iov_base = buf_pool_->buf_addr(idx);
-            slot->iov[iov_count].iov_len = buf_pool_->data_size(idx);
-            ++iov_count;
-        }
-        else
-            buf_pool_->release(idx);
+        slot->iov[iov_count].iov_base = buf_pool_->buf_addr(idx);
+        slot->iov[iov_count].iov_len = buf_pool_->data_size(idx);
+        ++iov_count;
     }
     slot->hdr.msg_iov = slot->iov;
     slot->hdr.msg_iovlen = iov_count;
@@ -251,9 +284,9 @@ bool WriteBufDgram::submit(MsghdrSlot *slot)
 }
 MsghdrSlot *WriteBufDgram::peek_slot(int offset) const
 {
-    if (msghdr_head_ + offset >= msghdr_tail_)
+    if (offset < 0 || static_cast<uint64_t>(offset) >= msghdr_tail_ - msghdr_head_)
         return nullptr;
-    return slot_queue_[(msghdr_head_ + offset) & mask_];
+    return slot_queue_[(msghdr_head_ + static_cast<uint64_t>(offset)) & mask_];
 }
 void WriteBufDgram::release_slot(MsghdrSlot *slot)
 {

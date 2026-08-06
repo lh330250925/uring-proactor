@@ -44,14 +44,15 @@ TcpWriteHandler tcp_write_loop([[maybe_unused]] TcpChannel &ch)
     auto &p = co_await GetPromise<TcpWriteHandler::promise_type>{};
     while (true)
     {
-        co_await p.channel_->notify_token_;
+        if (!p.channel_->write_buf_.has_send_data())
+            co_await p.channel_->notify_token_;
         if (p.channel_->is_closing() && !p.channel_->has_in_flight())
             break;
         int count = 0;
-        const iovec *vecs = p.channel_->write_buf_.peek_iovec(count);
+        unsigned int submitted_bytes = 0;
+        const iovec *vecs = p.channel_->write_buf_.peek_iovec(count, submitted_bytes);
         if (count == 0)
             continue;
-        p.channel_->write_buf_.set_release_guard(count);
         auto sqe = p.channel_->io_ring().get_sqe();
         sqe.prep_writev(p.channel_->fd(), vecs, (unsigned)count, 0);
         sqe.set_data(&p.token_);
@@ -64,7 +65,8 @@ TcpWriteHandler tcp_write_loop([[maybe_unused]] TcpChannel &ch)
                 p.channel_->close();
             break;
         }
-        p.channel_->write_buf_.release();
+        assert(static_cast<unsigned int>(res) <= submitted_bytes);
+        p.channel_->write_buf_.consume_written(static_cast<unsigned int>(res));
         p.channel_->server().on_write(*p.channel_, res);
     }
     p.channel_->write_buf_.reset();

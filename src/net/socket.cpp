@@ -21,6 +21,18 @@ Socket::Socket(uint16_t port, Type type)
         log_error("Failed to set SO_REUSEPORT");
         std::exit(EXIT_FAILURE);
     }
+    if (type == Type::UDP)
+    {
+        constexpr int socket_buffer_size = 4 * 1024 * 1024;
+        if (setsockopt(fd_, SOL_SOCKET, SO_RCVBUF,
+                       &socket_buffer_size, sizeof(socket_buffer_size)) < 0 ||
+            setsockopt(fd_, SOL_SOCKET, SO_SNDBUF,
+                       &socket_buffer_size, sizeof(socket_buffer_size)) < 0)
+        {
+            log_error("Failed to set UDP socket buffer size");
+            std::exit(EXIT_FAILURE);
+        }
+    }
     IpAddress ip_addr(port);
     if (bind(fd_, ip_addr.addr(), ip_addr.len()) < 0)
     {

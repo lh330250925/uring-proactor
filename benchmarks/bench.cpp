@@ -250,6 +250,13 @@ static void run_tcp_scaling(const char *addr, int tcp_port,
 
 static constexpr int UDP_HDR = 16; // seq(8) + timestamp(8)
 
+static void configure_udp_socket(int fd)
+{
+    constexpr int socket_buffer_size = 4 * 1024 * 1024;
+    ::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &socket_buffer_size, sizeof(socket_buffer_size));
+    ::setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &socket_buffer_size, sizeof(socket_buffer_size));
+}
+
 static void run_udp_bench(const char *addr, int udp_port,
                           int msg_size, int duration_s, int rate_pps)
 {
@@ -268,6 +275,7 @@ static void run_udp_bench(const char *addr, int udp_port,
 
     int sfd = ::socket(AF_INET, SOCK_DGRAM, 0);
     if (sfd < 0) { perror("udp socket"); return; }
+    configure_udp_socket(sfd);
 
     sockaddr_in sa{};
     sa.sin_family = AF_INET;
@@ -301,9 +309,11 @@ static void run_udp_bench(const char *addr, int udp_port,
     auto deadline  = Clock::now() + std::chrono::seconds(duration_s);
     auto next_send = Clock::now();
 
-    while (Clock::now() < deadline) {
+    auto drain_deadline = Clock::time_point::max();
+    while (Clock::now() < deadline ||
+           (recv_pkts < sent_pkts && Clock::now() < drain_deadline)) {
         // ── send ────────────────────────────────────────────────────────────
-        if (Clock::now() >= next_send) {
+        if (Clock::now() < deadline && Clock::now() >= next_send) {
             long long seq = seq_send++;
             long long now_ns = Clock::now().time_since_epoch().count();
             memcpy(sbuf.data(),     &seq,    8);
@@ -318,6 +328,9 @@ static void run_udp_bench(const char *addr, int udp_port,
             else
                 next_send = Clock::now();
         }
+
+        if (Clock::now() >= deadline && drain_deadline == Clock::time_point::max())
+            drain_deadline = Clock::now() + std::chrono::milliseconds(500);
 
         // ── recv (drain as many as available) ───────────────────────────────
         for (;;) {
@@ -388,6 +401,7 @@ static void udp_worker_fn(const char *addr, int port, int msg_size,
 
     int sfd = ::socket(AF_INET, SOCK_DGRAM, 0);
     if (sfd < 0) return;
+    configure_udp_socket(sfd);
 
     sockaddr_in sa{};
     sa.sin_family = AF_INET;
@@ -424,7 +438,7 @@ static void udp_worker_fn(const char *addr, int port, int msg_size,
                 ++out.sent_pkts;
             }
         } else if (drain_deadline == Clock::time_point::max()) {
-            drain_deadline = Clock::now() + std::chrono::milliseconds(200);
+            drain_deadline = Clock::now() + std::chrono::milliseconds(500);
         }
 
         for (;;) {
@@ -446,7 +460,7 @@ static void udp_worker_fn(const char *addr, int port, int msg_size,
 }
 
 static void run_udp_scaling(const char *addr, int udp_port,
-                            int msg_size, int duration_s)
+                            int msg_size, int duration_s, int sender_count)
 {
     if (msg_size < UDP_HDR) msg_size = UDP_HDR;
 
@@ -458,7 +472,10 @@ static void run_udp_scaling(const char *addr, int udp_port,
            "───────", "─────────────", "─────────────", "───────",
            "─────────", "─────────", "─────────");
 
-    for (int senders : {1, 4, 10}) {
+    std::vector<int> sender_counts = sender_count > 0
+                                   ? std::vector<int>{sender_count}
+                                   : std::vector<int>{1, 4, 10};
+    for (int senders : sender_counts) {
         std::vector<UdpWorkerResult> results(senders);
         std::vector<std::thread>     threads;
         threads.reserve(senders);
@@ -510,6 +527,7 @@ int main(int argc, char **argv)
     int  udp_size     = 64;
     int  duration     = 5;
     int  udp_rate     = 200'000;
+    int  udp_senders  = 0;
     bool do_tcp       = true;
     bool do_udp       = true;
     bool do_sweep     = true;
@@ -527,6 +545,7 @@ int main(int argc, char **argv)
         else if (a == "--udp-size" && i+1<argc) udp_size  = atoi(argv[++i]);
         else if (a == "--duration" && i+1<argc) duration  = atoi(argv[++i]);
         else if (a == "--udp-rate" && i+1<argc) udp_rate  = atoi(argv[++i]);
+        else if (a == "--udp-senders" && i+1<argc) udp_senders = atoi(argv[++i]);
         else if (a == "--no-tcp")               do_tcp       = false;
         else if (a == "--no-udp")             { do_udp = do_udp_rate = do_udp_sweep = false; }
         else if (a == "--no-sweep")             do_sweep     = false;
@@ -544,6 +563,7 @@ int main(int argc, char **argv)
                 "  --udp-size N       UDP msg size       (min 16)\n"
                 "  --duration S       seconds per test   (default: 5)\n"
                 "  --udp-rate N       UDP pps target     (default: 200000, 0=unlimited)\n"
+                "  --udp-senders N    UDP scaling sender count (default: sweep 1,4,10)\n"
                 "  --no-tcp           skip TCP tests\n"
                 "  --no-udp           skip all UDP tests\n"
                 "  --no-udp-rate      skip UDP rate sweep\n"
@@ -566,7 +586,7 @@ int main(int argc, char **argv)
         if (do_udp_rate)
             run_udp_bench(addr, udp_port, udp_size, duration, udp_rate);
         if (do_udp_sweep)
-            run_udp_scaling(addr, udp_port, udp_size, duration);
+            run_udp_scaling(addr, udp_port, udp_size, duration, udp_senders);
     }
 
     printf("\nBenchmark complete.\n");

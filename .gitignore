@@ -1,33 +1,51 @@
-# Build directories
-build/
-build_debug/
+# Build trees
+/build*/
+/cmake-build-*/
+/out/
 
-# Compiled objects and archives
+# Compiler and linker output
 *.o
 *.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
 
-# Generated binaries
-echo_server
+# CMake in-source output
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/Makefile
+/compile_commands.json
+/CTestTestfile.cmake
+/Testing/
 
 # Core dumps
-core
-core.*
+/core
+/core.*
+*.core
 
-# Benchmark / log output
-perf_report.md
-log/
+# Runtime and benchmark output
+/log/
+/reports/
+*.log
 
-# CMake generated files
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-Makefile
-compile_commands.json
+# Coverage and profiling output
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
 
 # Editor / IDE
-.vscode/
-.idea/
+/.vscode/
+/.idea/
 *.swp
 *.swo
 *~
+
+# OS metadata
+.DS_Store
+Thumbs.db
 

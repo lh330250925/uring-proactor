@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <optional>
 #include <sys/uio.h>
 #include "core/buf_ring.hpp"
@@ -26,7 +27,7 @@ protected:
     unsigned int mask_;
     PeekResult peek_result_;
 
-    explicit ReadBufBase(BufRing &buf_ring, int capacity);
+    explicit ReadBufBase(BufRing &buf_ring);
     ~ReadBufBase();
 
 public:
@@ -43,7 +44,7 @@ class ReadBufStream : public ReadBufBase
     unsigned int head_offset_ = 0;
 
 public:
-    explicit ReadBufStream(BufRing &buf_ring, int capacity);
+    explicit ReadBufStream(BufRing &buf_ring);
     PeekResult *peek(unsigned int size);
     bool consume(unsigned int size);
     void reset()
@@ -60,7 +61,7 @@ class ReadBufDgram : public ReadBufBase
     std::optional<DgramMsg> peeked_msg_;
 
 public:
-    explicit ReadBufDgram(BufRing &buf_ring, int capacity);
+    explicit ReadBufDgram(BufRing &buf_ring);
     msghdr *recv_msghdr() { return &recv_msghdr_; }
     DgramMsg *peek();
     bool consume();
@@ -71,10 +72,10 @@ class WriteBufBase : NonCopyable
 protected:
     unsigned int *pending_bufs_;
     unsigned int *send_queue_;
-    int send_head_ = 0;
-    int pending_head_ = 0;
-    int pending_tail_ = 0;
-    int send_tail_ = 0;
+    uint64_t send_head_ = 0;
+    uint64_t pending_head_ = 0;
+    uint64_t pending_tail_ = 0;
+    uint64_t send_tail_ = 0;
     BufPool *buf_pool_;
     int capacity_;
     unsigned int mask_;
@@ -85,20 +86,21 @@ protected:
 public:
     bool append(const char *data, unsigned int size);
     bool prepend(const char *data, unsigned int size);
+    void discard_pending();
 };
 
 class WriteBufStream : public WriteBufBase
 {
     iovec *iovec_;
-    int release_guard_ = 0;
+    unsigned int send_head_offset_ = 0;
 
 public:
     explicit WriteBufStream(BufPool &buf_pool, int capacity);
     ~WriteBufStream();
     bool submit();
-    const iovec *peek_iovec(int &count) const;
-    void release();
-    void set_release_guard(int count) { release_guard_ = send_head_ + count; }
+    bool has_send_data() const { return send_head_ != send_tail_; }
+    const iovec *peek_iovec(int &count, unsigned int &bytes) const;
+    void consume_written(unsigned int bytes);
     void reset()
     {
         while (send_head_ != send_tail_)
@@ -106,14 +108,15 @@ public:
         while (pending_head_ != pending_tail_)
             buf_pool_->release(pending_bufs_[pending_head_++ & mask_]);
         pending_head_ = pending_tail_ = send_head_ = send_tail_ = 0;
+        send_head_offset_ = 0;
     }
 };
 
 class WriteBufDgram : public WriteBufBase
 {
     MsghdrSlot **slot_queue_;
-    int msghdr_head_ = 0;
-    int msghdr_tail_ = 0;
+    uint64_t msghdr_head_ = 0;
+    uint64_t msghdr_tail_ = 0;
     MsghdrPool *msghdr_pool_;
     int max_iov_;
 
@@ -125,5 +128,5 @@ public:
     MsghdrSlot *peek_slot(int offset = 0) const;
     void release_slot(MsghdrSlot *slot);
     void clear_slot_queue();
-    int slot_queue_size() const { return msghdr_tail_ - msghdr_head_; }
+    int slot_queue_size() const { return static_cast<int>(msghdr_tail_ - msghdr_head_); }
 };
